@@ -2,19 +2,21 @@ use crate::raw::*;
 use crate::types::target::{Target, TargetType};
 // use crate::types::button::Reportable;
 use crate::types::button::Reportable;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Vigem {
-    pub vigem: Rc<Box<PVIGEM_CLIENT>>,
+    pub vigem: Arc<Box<PVIGEM_CLIENT>>,
     drop: bool,
 }
+
+unsafe impl Send for Vigem {}
 
 impl Vigem {
     /// Create a new Vigem instance and allocates it
     pub fn new() -> Self {
         let vigem = unsafe { vigem_alloc() };
         Self {
-            vigem: Rc::new(Box::new(vigem)),
+            vigem: Arc::new(Box::new(vigem)),
             drop: true,
         }
     }
@@ -22,7 +24,7 @@ impl Vigem {
     /// You can build safe `Vigem` abstraction from `PVIGEM_CLIENT`, which you can obtain from notifications
     pub fn from_raw(vigem: PVIGEM_CLIENT) -> Self {
         Self {
-            vigem: Rc::new(Box::new(vigem)),
+            vigem: Arc::new(Box::new(vigem)),
             drop: false,
         }
     }

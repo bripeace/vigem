@@ -1,15 +1,18 @@
 use crate::raw::*;
 use crate::types::button::Reportable;
 use crate::types::vigem::VigemError;
-use std::rc::Rc;
+use std::sync::Arc;
+
 /// It's a safe abstraction over `PVIGEM_TARGET`
 /// Note: If you use from_raw, dont forget to manually call `target.free()` or you will die
 #[derive(Debug)]
 pub struct Target {
     pub raw: Box<PVIGEM_TARGET>,
     drop: bool,
-    client: Option<Rc<Box<PVIGEM_CLIENT>>>
+    client: Option<Arc<Box<PVIGEM_CLIENT>>>
 }
+
+unsafe impl Send for Target {}
 
 impl Target {
     /// Make a new Target and allocates it.
@@ -28,13 +31,13 @@ impl Target {
         }
     }
 
-    pub(crate) fn set_client(&mut self, client: std::rc::Rc<Box<PVIGEM_CLIENT>>){
+    pub(crate) fn set_client(&mut self, client: Arc<Box<PVIGEM_CLIENT>>){
         self.client = Some(client);
     }
 
     /// Make safe abstraction over `PVIGEM_TARGET`, use when you get notification
     pub fn from_raw(target: PVIGEM_TARGET, client: PVIGEM_CLIENT) -> Self {
-        let client = Some(Rc::new(Box::new(client)));
+        let client = Some(Arc::new(Box::new(client)));
         Self {
             raw: Box::new(target),
             drop: false,
