@@ -3,5 +3,4 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-pub mod binds;
-pub use binds::*;
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

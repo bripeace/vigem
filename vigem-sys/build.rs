@@ -1,27 +1,24 @@
-#[cfg(target_arch = "x86_64")]
-pub const LIB_NAME: &str = "VigemClient_x64";
-
-#[cfg(target_arch = "x86")]
-pub const LIB_NAME: &str = "VigemClient_x86";
-
-use std::fs;
+use std::path::PathBuf;
 
 fn main() {
     let project_dir = std::env::var("OUT_DIR").unwrap();
-    let root_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
 
-    let first_path = format!("{}\\libs\\{}.lib", root_dir, LIB_NAME);
-    let second_path = format!("{}\\{}.lib", project_dir, LIB_NAME);
+    let project_path = PathBuf::from(&project_dir);
 
-    let result = fs::copy(&first_path, &second_path);
-    if result.is_err(){
-        println!("cargo:warning=Failed to copy file. Hi, docs.rs!");
-    }
+    cc::Build::new()
+        .file("src/binds/ViGEmClient.cpp")
+        .include("src/binds")
+        .compile("vigemclient");
 
-    println!("cargo:rerun-if-changed=build.rs");
+    let bindings = bindgen::Builder::default()
+        .header("src/binds/ViGEmClient.cpp")
+        .whitelist_function("vigem_.*")
+        .whitelist_type("_XUSB.*")
+        .whitelist_type("_DS$.*")
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .generate().expect("failed to generate bindings");
 
-    println!("cargo:rustc-link-search=static={}", format!("{}\\", project_dir));
+    bindings.write_to_file(project_path.join("bindings.rs")).expect("could not write bindings");
+
     println!("cargo:rustc-link-lib=setupapi");
-
-    println!("cargo:rustc-link-lib={}", LIB_NAME);
 }

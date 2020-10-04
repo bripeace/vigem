@@ -9,4 +9,6 @@ keywords = ["rust", "vigem", "xbox360", "xbox"]
 license = "GPL-3.0-or-later"
 exclude = ["src/binds/*.h", "src/binds/*.cpp", "examples"]
 
-[dependencies]
+[build-dependencies]
+bindgen = "0.55.1"
+cc = { version = "1.0", features = ["parallel"] }
